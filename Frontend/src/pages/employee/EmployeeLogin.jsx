@@ -1,0 +1,139 @@
+import { useState } from "react";
+import { useNavigate, useLocation, Navigate, Link } from "react-router-dom";
+import useEmployeeAuth from "../../hooks/useEmployeeAuth.js";
+import useAdminAuth from "../../hooks/useAdminAuth.js";
+import { ROUTES } from "../../utils/routes.js";
+
+const EmployeeLogin = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login, isAuthenticated } = useEmployeeAuth();
+  const { logout: adminLogout } = useAdminAuth();
+
+  const [formData, setFormData] = useState({ mobile: "", password: "" });
+  const [errors, setErrors] = useState({});
+  const [serverError, setServerError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const from = location.state?.from?.pathname;
+  const redirectTo =
+    from && from.startsWith(ROUTES.EMPLOYEE.ROOT) ? from : ROUTES.EMPLOYEE.DASHBOARD;
+
+  if (isAuthenticated) {
+    return <Navigate to={redirectTo} replace />;
+  }
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.mobile.trim()) {
+      newErrors.mobile = "Mobile number is required";
+    } else if (!/^[6-9]\d{9}$/.test(formData.mobile.trim())) {
+      newErrors.mobile = "Enter a valid 10-digit mobile number";
+    }
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setServerError("");
+
+    if (!validate()) return;
+
+    setSubmitting(true);
+    const result = await login(formData.mobile.trim(), formData.password);
+    setSubmitting(false);
+
+    if (result.success) {
+      adminLogout(); // never keep two sessions alive at once
+      navigate(redirectTo, { replace: true });
+    } else {
+      setServerError(result.message);
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+      <div className="w-full max-w-md">
+        <Link to={ROUTES.HOME} className="mb-4 inline-block text-xs font-medium text-gray-500 hover:text-gray-700">
+          ← Back to Home
+        </Link>
+
+        <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-card">
+          <div className="mb-8 text-center">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-gold-500 text-xl font-bold text-charcoal-950">
+              R
+            </div>
+            <h1 className="text-xl font-semibold text-gray-900">Login</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Sign in with your registered mobile number
+            </p>
+          </div>
+
+          {serverError && (
+            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {serverError}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-500">Mobile Number</label>
+              <input
+                type="text"
+                name="mobile"
+                value={formData.mobile}
+                onChange={handleChange}
+                maxLength={10}
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-gold-500"
+                placeholder="9876543210"
+                autoComplete="username"
+              />
+              {errors.mobile && <p className="mt-1 text-xs text-red-600">{errors.mobile}</p>}
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-500">Password</label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-gold-500"
+                placeholder="••••••••"
+                autoComplete="current-password"
+              />
+              {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password}</p>}
+            </div>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full rounded-lg bg-gold-500 py-2.5 text-sm font-semibold text-charcoal-950 transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {submitting ? "Signing in..." : "Login"}
+            </button>
+          </form>
+
+          <p className="mt-6 text-center text-xs text-gray-500">
+            Restaurant admin?{" "}
+            <Link to={ROUTES.ADMIN.LOGIN} className="font-medium text-gold-600 hover:underline">
+              Admin login
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default EmployeeLogin;

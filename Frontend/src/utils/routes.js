@@ -1,0 +1,33 @@
+// Single source of truth for every route in the app.
+export const ROUTES = {
+  HOME: "/",
+  MENU: "/menu",
+  MENU_ITEM: (id) => `/menu/${id}`,
+  CONTACT: "/contact",
+  LOGIN: "/login",
+  EMPLOYEE: {
+    ROOT: "/employee",
+    DASHBOARD: "/employee/dashboard",
+    ORDERS: "/employee/orders",
+    PAYMENTS: "/employee/payments",
+    TABLES: "/employee/tables",
+    NOTIFICATIONS: "/employee/notifications",
+    PROFILE: "/employee/profile",
+  },
+  ADMIN: {
+    ROOT: "/admin-portal",
+    LOGIN: "/admin-portal/login",
+    DASHBOARD: "/admin-portal/dashboard",
+    STAFF: "/admin-portal/staff",
+    TABLES: "/admin-portal/tables",
+    QR: "/admin-portal/qr-management",
+    CATEGORIES: "/admin-portal/categories",
+    MENU: "/admin-portal/menu",
+    ORDERS: "/admin-portal/orders",
+    PAYMENTS: "/admin-portal/payments",
+    REPORTS: "/admin-portal/reports",
+    NOTIFICATIONS: "/admin-portal/notifications",
+    SETTINGS: "/admin-portal/settings",
+    PROFILE: "/admin-portal/profile",
+  },
+};
